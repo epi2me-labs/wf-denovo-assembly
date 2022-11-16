@@ -1,6 +1,7 @@
 ## Introduction
 
-This section of documentation typically contains an overview of the workflow in terms of motivation
-and bioinformatics methods, listing any key tools or algorithms employed, whilst also describing its
-range of use-cases and what a suitable input dataset should look like.
+This workflow uses [Flye](https://github.com/fenderglass/Flye) for assembly.
 
+[Medaka](https://github.com/nanoporetech/medaka) for assembly polishing.
+
+[QUAST](https://quast.sourceforge.net/quast.html) for assembly Quality assessment.

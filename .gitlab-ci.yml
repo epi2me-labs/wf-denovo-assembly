@@ -5,7 +5,7 @@ include:
 
 variables:
     # We'll use the single-file case for these runs
-    NF_WORKFLOW_OPTS: "--fastq test_data/reads.fastq.gz"
+    NF_WORKFLOW_OPTS: "--fastq test_data/fastq/reads.fastq.gz"
     CI_FLAVOUR: "new" # set to "classic" for old-style CI
 
 
@@ -30,16 +30,7 @@ docker-run:
         matrix:
             # TODO: do we really need to run all from s3?
             - MATRIX_NAME: [
-                "single-file", "single-file-s3",
-                "case01", "case01-s3",
-                "case02", "case02-s3",
-                "case03", "case03-s3",
-                "case04", "case04-s3",
-                "case05", "case05-s3",
-                "case06", "case06-s3",
-                "case07", "case07-s3",
-                "case08", "case08-s3",
-                "case20", "case20-include"]
+                "single-file", "single-directory"]
     rules:
         # NOTE As we're overriding the rules block for the included docker-run
         #   we must redefine this CI_COMMIT_BRANCH rule to prevent docker-run
@@ -48,70 +39,7 @@ docker-run:
           when: never
         - if: $MATRIX_NAME == "single-file"
           variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/reads.fastq.gz"
-        - if: $MATRIX_NAME == "single-file-s3"
+              NF_WORKFLOW_OPTS: "--fastq test_data/fastq/reads.fastq.gz"
+        - if: $MATRIX_NAME == "single-directory"
           variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/reads.fastq.gz"
-
-        - if: $MATRIX_NAME == "case01"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case01"
-        - if: $MATRIX_NAME == "case01-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case01"
-
-        - if: $MATRIX_NAME == "case02"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case02"
-        - if: $MATRIX_NAME == "case02-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case02"
-
-        - if: $MATRIX_NAME == "case03"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case03"
-        - if: $MATRIX_NAME == "case03-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case03"
-
-        - if: $MATRIX_NAME == "case04"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case04"
-        - if: $MATRIX_NAME == "case04-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case04"
-
-        - if: $MATRIX_NAME == "case05"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case05"
-        - if: $MATRIX_NAME == "case05-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case05"
-
-        - if: $MATRIX_NAME == "case06"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case06 --sample_sheet test_data/fastq_ingress/case06/sample_sheet.csv"
-        - if: $MATRIX_NAME == "case06-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case06 --sample_sheet s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case06/sample_sheet.csv"
-
-        - if: $MATRIX_NAME == "case07"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case07 --sample_sheet test_data/fastq_ingress/case07/sample_sheet.csv"
-        - if: $MATRIX_NAME == "case07-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case07 --sample_sheet s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case07/sample_sheet.csv"
-
-        - if: $MATRIX_NAME == "case08"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case08 --sample_sheet test_data/fastq_ingress/case08/sample_sheet.csv"
-        - if: $MATRIX_NAME == "case08-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case08 --sample_sheet s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case08/sample_sheet.csv"
-
-        - if: $MATRIX_NAME == "case20"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case20"
-        - if: $MATRIX_NAME == "case20-include"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case20 --unclassified true"
+              NF_WORKFLOW_OPTS: "--fastq test_data/fastq"
