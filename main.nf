@@ -18,21 +18,22 @@ include { fastq_ingress } from './lib/fastqingress'
 process summariseReads {
     // concatenate fastq and fastq.gz in a dir
 
-    label "wftemplate"
+    label "wfdenovoassembly"
     cpus 1
     input:
         tuple path(directory), val(meta)
     output:
-        path "${meta.sample_id}.stats"
+        tuple val("${meta.sample_id}"), path("${meta.sample_id}.stats"), path("${meta.sample_id}.fastq.gz")
     shell:
     """
-    fastcat -s ${meta.sample_id} -r ${meta.sample_id}.stats -x ${directory} > /dev/null
+    fastcat -s "${meta.sample_id}" -r "${meta.sample_id}.stats" -x "${directory}" > "${meta.sample_id}.fastq"
+    bgzip "${meta.sample_id}.fastq"
     """
 }
 
 
 process getVersions {
-    label "wftemplate"
+    label "wfdenovoassembly"
     cpus 1
     output:
         path "versions.txt"
@@ -45,7 +46,7 @@ process getVersions {
 
 
 process getParams {
-    label "wftemplate"
+    label "wfdenovoassembly"
     cpus 1
     output:
         path "params.json"
@@ -59,7 +60,7 @@ process getParams {
 
 
 process makeReport {
-    label "wftemplate"
+    label "wfdenovoassembly"
     input:
         val metadata
         path "seqs.txt"
@@ -81,12 +82,43 @@ process makeReport {
 }
 
 
+process deNovo {
+    label "wfdenovoassembly"
+    cpus params.threads
+    input:
+        tuple val(sample_id), path("reads.fastq.gz")
+    output:
+        tuple val(sample_id), path("${sample_id}.draft_assembly.fasta.gz"), path("${sample_id}_flye_stats.tsv")
+        
+    """
+    flye --nano-hq reads.fastq.gz --read-error ${params.read_error} --genome-size ${params.genome_size} --out-dir output --threads "${task.cpus}"
+    mv output/assembly.fasta "./${sample_id}.draft_assembly.fasta"
+    mv output/assembly_info.txt "./${sample_id}_flye_stats.tsv"
+    bgzip "${sample_id}.draft_assembly.fasta"
+    """
+}
+
+
+process assemblyStats {
+    label "wfdenovoassembly"
+    input:
+         tuple val(sample_id), path("draft_assembly.fasta.gz"), path("flye_stats.tsv")
+
+    output:
+        tuple val(sample_id), path("${sample_id}_quast_report.pdf")
+    """
+    quast -o quast_output -t $task.cpus "draft_assembly.fasta.gz" || true
+    mv "quast_output/report.pdf" "${sample_id}_quast_report.pdf"
+    """
+}
+
+
 // See https://github.com/nextflow-io/nextflow/issues/1636
 // This is the only way to publish files from a workflow whilst
 // decoupling the publish from the process steps.
 process output {
     // publish inputs to output directory
-    label "wftemplate"
+    label "wfdenovoassembly"
     publishDir "${params.out_dir}", mode: 'copy', pattern: "*"
     input:
         path fname
@@ -107,10 +139,15 @@ workflow pipeline {
         software_versions = getVersions()
         workflow_params = getParams()
         metadata = reads.map { it -> return it[1] }.toList()
-        report = makeReport(metadata, summary, software_versions.collect(), workflow_params)
+        denovo = deNovo(summary.map{ it -> tuple(it[0], it[2])})
+        assembly_quality = assemblyStats(denovo)
+        report = makeReport(metadata, summary.map{ it -> it[1]}, software_versions.collect(), workflow_params)
     emit:
-        results = summary.concat(report, workflow_params)
-        // TODO: use something more useful as telemetry
+        results = summary.map({ it -> tuple(it[1], it[2])})
+        .concat(report, workflow_params,
+                denovo.map{it -> it[1]},
+                assembly_quality.map{it -> it[1]} )
+        
         telemetry = workflow_params
 }
 

@@ -1,9 +1,9 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
-    "title": "epi2me-labs/wf-template",
-    "description": "Nextflow workflow template repository.",
-    "url": "https://github.com/epi2me-labs/wf-template",
+    "title": "epi2me-labs/wf-denovo-assembly",
+    "description": "Nextflow workflow denovo assembly repository.",
+    "url": "https://github.com/epi2me-labs/wf-denovo-assembly",
     "type": "object",
     "definitions": {
         "basic_input_output_options": {
@@ -28,14 +28,27 @@
                     "type": "string",
                     "description": "A sample name for non-multiplexed data. Permissible if passing a file or directory of .fastq(.gz)."
                 },
+                "read_error": {
+                    "type": "number",
+                    "default": 0.002,
+                    "description": "adjust parameters for given read error rate (as fraction e.g. 0.03)"
+                },
                 "sample_sheet": {
                     "type": "string",
                     "description": "CSV file with columns named `barcode`, `sample_name` and `type`. Permissible if passing a directory containing barcodeXX sub-directories."
                 },
+                "threads": {
+                    "type": "integer",
+                    "default": 4,
+                    "description": "Set max number of threads to use for more intense processes (limited by config executor cpus)"
+                },
                 "analyse_unclassified": {
                     "type": "boolean",
-                    "default": "false",
                     "description": "Analyse unclassified reads from input directory."
+                },
+                "genome_size": {
+                    "type": "integer",
+                    "default": 5000000
                 }
             },
             "required": [
@@ -55,7 +68,6 @@
                 },
                 "disable_ping": {
                     "type": "boolean",
-                    "default": "false",
                     "description": "Enable to prevent sending a workflow ping."
                 }
             }
@@ -72,6 +84,12 @@
                     "description": "Display help text.",
                     "fa_icon": "fas fa-question-circle",
                     "hidden": true
+                },
+                "process_label": {
+                    "type": "string",
+                    "description": "The main process label for template processes to use by default",
+                    "hidden": true,
+                    "default": "wf-denovo-assembly"
                 }
             }
         }
@@ -88,12 +106,6 @@
         }
     ],
     "properties": {
-        "process_label": {
-            "type": "string",
-            "description": "The main process label for template processes to use by default",
-            "hidden": true,
-            "default": "wf-template"
-        },
         "aws_image_prefix": {
             "type": "string",
             "hidden": true
@@ -104,7 +116,7 @@
         },
         "wfversion": {
             "type": "string",
-            "default": "v0.2.0",
+            "default": "v0.0.1",
             "hidden": true
         },
         "monochrome_logs": {
@@ -119,7 +131,7 @@
         }
     },
     "docs": {
-        "intro": "## Introduction\n\nThis section of documentation typically contains an overview of the workflow in terms of motivation\nand bioinformatics methods, listing any key tools or algorithms employed, whilst also describing its\nrange of use-cases and what a suitable input dataset should look like.\n\n",
+        "intro": "## Introduction\n\nThis workflow uses [Flye](https://github.com/fenderglass/Flye) for assembly.\n\n[Medaka](https://github.com/nanoporetech/medaka) for assembly polishing.\n\n[QUAST](https://quast.sourceforge.net/quast.html) for assembly Quality assessment.\n",
         "links": "## Useful links\n\n* [nextflow](https://www.nextflow.io/)\n* [docker](https://www.docker.com/products/docker-desktop)\n* [conda](https://docs.conda.io/en/latest/miniconda.html)\n"
     }
 }
